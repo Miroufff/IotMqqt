@@ -8,8 +8,8 @@ import (
 	"github.com/yosssi/gmq/mqtt"
 	"github.com/yosssi/gmq/mqtt/client"
 	"github.com/franela/goreq"
-	"./common"
 	"time"
+	"github.com/miroufff/IotGoMqtt/common"
 )
 
 /**
@@ -47,10 +47,28 @@ func main() {
 	err = cli.Subscribe(&client.SubscribeOptions{
 		SubReqs: []*client.SubReq{
 			&client.SubReq{
+				TopicFilter: []byte("/humidity"),
+				QoS:         mqtt.QoS0,
+				// Define the processing of the message handler.
+				Handler: sensorHumidityHandler,
+			},
+			&client.SubReq{
 				TopicFilter: []byte("/temperature"),
 				QoS:         mqtt.QoS0,
 				// Define the processing of the message handler.
-				Handler: sensorDataHandler,
+				Handler: sensorTemperatureHandler,
+			},
+			&client.SubReq{
+				TopicFilter: []byte("/airquality"),
+				QoS:         mqtt.QoS0,
+				// Define the processing of the message handler.
+				Handler: sensorAirqualityHandler,
+			},
+			&client.SubReq{
+				TopicFilter: []byte("/dust"),
+				QoS:         mqtt.QoS0,
+				// Define the processing of the message handler.
+				Handler: sensorDustHandler,
 			},
 		},
 	})
@@ -64,7 +82,10 @@ func main() {
 	// Unsubscribe from topics.
 	err = cli.Unsubscribe(&client.UnsubscribeOptions{
 		TopicFilters: [][]byte{
+			[]byte("/humidity"),
 			[]byte("/temperature"),
+			[]byte("/airquality"),
+			[]byte("/dust"),
 		},
 	})
 	if err != nil {
@@ -77,7 +98,48 @@ func main() {
 	}
 }
 
-func sensorDataHandler(topicName, message []byte) {
+func sensorHumidityHandler(topicName, message []byte) {
+	fmt.Println(string(topicName), string(message))
+
+	// If the message publish on the good topic
+	if (string(topicName) != "/humidity") {
+		panic("wrong message")
+	}
+
+	data := &common.SensorData{
+		SensorName:  "650e94aa-6dfb-11e7-a5f1-b827eb4085b0",
+		Measurement: "humidity",
+		Time:        time.Now().UnixNano(),
+		Value:       string(message),
+	}
+
+	jsonitem, err := json.Marshal(data)
+
+	fmt.Println(string(jsonitem))
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	// Post request to IotApi api
+	request := goreq.Request{
+		Method: "POST",
+		Uri: "http://" + common.IpApiServ + "/api/datasensors?sender=go",
+		Accept: "application/json",
+		ContentType: "application/json",
+		UserAgent: "goreq",
+		Body: string(jsonitem),
+	}
+	res, err := request.Do()
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println(res.Header)
+	fmt.Println(res.Body.ToString())
+}
+
+func sensorTemperatureHandler(topicName, message []byte) {
 	fmt.Println(string(topicName), string(message))
 
 	// If the message publish on the good topic
@@ -86,8 +148,91 @@ func sensorDataHandler(topicName, message []byte) {
 	}
 
 	data := &common.SensorData{
-		SensorName:  "c10d2fc4-9361-4c24-91f4-c355379cbf44",
-		Measurement: "temp",
+		SensorName:  "650e94aa-6dfb-11e7-a5f1-b827eb4085b0",
+		Measurement: "temperature",
+		Time:        time.Now().UnixNano(),
+		Value:       string(message),
+	}
+
+	jsonitem, err := json.Marshal(data)
+
+	fmt.Println(string(jsonitem))
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	// Post request to IotApi api
+	request := goreq.Request{
+		Method: "POST",
+		Uri: "http://" + common.IpApiServ + "/api/datasensors?sender=go",
+		Accept: "application/json",
+		ContentType: "application/json",
+		UserAgent: "goreq",
+		Body: string(jsonitem),
+	}
+	res, err := request.Do()
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println(res.Header)
+	fmt.Println(res.Body.ToString())
+}
+
+func sensorAirqualityHandler(topicName, message []byte) {
+	fmt.Println(string(topicName), string(message))
+
+	// If the message publish on the good topic
+	if (string(topicName) != "/airquality") {
+		panic("wrong message")
+	}
+
+	data := &common.SensorData{
+		SensorName:  "650e94aa-6dfb-11e7-a5f1-b827eb4085b0",
+		Measurement: "airquality",
+		Time:        time.Now().UnixNano(),
+		Value:       string(message),
+	}
+
+	jsonitem, err := json.Marshal(data)
+
+	fmt.Println(string(jsonitem))
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	// Post request to IotApi api
+	request := goreq.Request{
+		Method: "POST",
+		Uri: "http://" + common.IpApiServ + "/api/datasensors?sender=go",
+		Accept: "application/json",
+		ContentType: "application/json",
+		UserAgent: "goreq",
+		Body: string(jsonitem),
+	}
+	res, err := request.Do()
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println(res.Header)
+	fmt.Println(res.Body.ToString())
+}
+
+
+func sensorDustHandler(topicName, message []byte) {
+	fmt.Println(string(topicName), string(message))
+
+	// If the message publish on the good topic
+	if (string(topicName) != "/dust") {
+		panic("wrong message")
+	}
+
+	data := &common.SensorData{
+		SensorName:  "650e94aa-6dfb-11e7-a5f1-b827eb4085b0",
+		Measurement: "dust",
 		Time:        time.Now().UnixNano(),
 		Value:       string(message),
 	}
