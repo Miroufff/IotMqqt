@@ -1,4 +1,4 @@
-IotMqqt
+IotMqtt
 =======================
 
 A Go project created on February 21, 2017.
